@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>采集数据后台</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 13px;
+    color: #1f2937;
+    background: #f3f4f6;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #111827;
+    color: #fff;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .btn:hover { background: #f9fafb; }
+  .btn.on { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+  .btn.primary { background: #fe2c55; border-color: #fe2c55; color: #fff; }
+  .summary {
+    padding: 10px 20px;
+    color: #6b7280;
+    font-size: 12px;
+  }
+  .summary b { color: #111827; }
+  .table-wrap { padding: 0 20px 20px; overflow: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    white-space: nowrap;
+  }
+  th {
+    background: #f9fafb;
+    color: #4b5563;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { background: #f3f4f6; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  .badge-new {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 5px;
+    font-size: 10px;
+    line-height: 16px;
+    color: #fff;
+    background: #fe2c55;
+    border-radius: 4px;
+  }
+  .muted { color: #9ca3af; }
+  .mono { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>抖音 AI 合集作者 · 采集数据后台</h1>
+    <button class="btn primary" id="btnExport">导出 CSV</button>
+  </header>
+  <div class="toolbar">
+    <button class="btn on" id="btnAll">全部</button>
+    <button class="btn" id="btnToday">仅今日新增</button>
+    <button class="btn" id="btnRefresh">刷新</button>
+    <span class="muted" id="sortHint">点击表头排序</span>
+  </div>
+  <div class="summary" id="summary"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-k="nickname">昵称</th>
+          <th data-k="secUid">sec_uid</th>
+          <th data-k="mixName">合集名</th>
+          <th data-k="firstSeen">首次发现时间</th>
+          <th data-k="lastSeen">最近发现时间</th>
+          <th data-k="videoCount" style="text-align:right">视频数</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+<script>
+"use strict";
+
+let authors = {};
+let viewToday = false;
+let sortKey = "lastSeen";
+
+function fmtTime(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+function todayStart() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function load() {
+  chrome.storage.local.get("authors", (data) => {
+    authors = data.authors || {};
+    render();
+  });
+}
+
+function render() {
+  let list = Object.keys(authors).map((k) => authors[k]);
+  const t = todayStart();
+  const todayCount = list.filter((a) => (a.firstSeen || 0) >= t).length;
+
+  if (viewToday) {
+    list = list.filter((a) => (a.firstSeen || 0) >= t);
+  }
+  if (sortKey === "videoCount" || sortKey === "firstSeen" || sortKey === "lastSeen") {
+    list.sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
+  } else {
+    list.sort((a, b) =>
+      String(b[sortKey] || "").localeCompare(String(a[sortKey] || ""), "zh-Hans-CN")
+    );
+  }
+
+  document.getElementById("summary").innerHTML =
+    `共 <b>${Object.keys(authors).length}</b> 位作者 · 今日新增 <b>${todayCount}</b> 位` +
+    (viewToday ? " · 当前仅显示今日新增" : "");
+
+  const tbody = document.getElementById("tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="muted">暂无数据</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((a) => {
+    const isNew = (a.firstSeen || 0) >= t;
+    const name = String(a.nickname || "(无昵称)")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const mix = String(a.mixName || "合集")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const uid = String(a.secUid || "");
+    const badge = isNew ? `<span class="badge-new">新</span>` : "";
+    return `<tr>
+      <td>${name}${badge}</td>
+      <td class="mono" title="${uid}">${uid.slice(0, 24)}${uid.length > 24 ? "…" : ""}</td>
+      <td>${mix}</td>
+      <td class="muted">${fmtTime(a.firstSeen)}</td>
+      <td class="muted">${fmtTime(a.lastSeen)}</td>
+      <td style="text-align:right">${a.videoCount || 0}</td>
+    </tr>`;
+  }).join("");
+}
+
+function exportCsv() {
+  const list = Object.keys(authors).map((k) => authors[k]);
+  if (!list.length) return alert("暂无数据");
+  list.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  const esc = (v) => {
+    const s = String(v == null ? "" : v);
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  };
+  const lines = [["昵称", "sec_uid", "合集名", "首次发现时间", "最近发现时间", "视频数"].join(",")];
+  for (const a of list) {
+    lines.push(
+      [a.nickname || "", a.secUid || "", a.mixName || "", fmtTime(a.firstSeen), fmtTime(a.lastSeen), a.videoCount || 0]
+        .map(esc)
+        .join(",")
+    );
+  }
+  const csv = String.fromCharCode(0xfeff) + lines.join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "douyin-ai-authors.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btnAll").addEventListener("click", () => setView(false));
+document.getElementById("btnToday").addEventListener("click", () => setView(true));
+document.getElementById("btnRefresh").addEventListener("click", load);
+document.getElementById("btnExport").addEventListener("click", exportCsv);
+
+function setView(v) {
+  viewToday = v;
+  document.getElementById("btnAll").classList.toggle("on", !viewToday);
+  document.getElementById("btnToday").classList.toggle("on", viewToday);
+  render();
+}
+
+document.querySelectorAll("thead th").forEach((th) => {
+  th.addEventListener("click", () => {
+    sortKey = th.getAttribute("data-k");
+    render();
+  });
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.authors) {
+    authors = changes.authors.newValue || {};
+    render();
+  }
+});
+
+load();
+</script>
+</body>
+</html>

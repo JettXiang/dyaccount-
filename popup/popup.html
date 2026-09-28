@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>抖音AI合集作者采集</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>AI 合集作者采集</h1>
+      <p class="sub">挂载合集 + 作者声明「内容由AI生成」</p>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <b id="count">0</b>
+        <span>作者</span>
+      </div>
+      <div class="card">
+        <b id="scanned">0</b>
+        <span>已扫视频</span>
+      </div>
+    </section>
+    <p class="status">状态：<strong id="collecting">未开始</strong></p>
+
+    <section class="actions">
+      <button class="primary" data-act="toggle" id="toggle">开始采集</button>
+      <button data-act="auto" id="auto">自动下滑</button>
+      <button data-act="open">打开精选页</button>
+      <button data-act="backend">打开后台</button>
+    </section>
+
+    <section class="filters">
+      <label><input type="checkbox" id="requireMix" checked /> 必须挂载合集</label>
+      <label><input type="checkbox" id="requireAi" checked /> 必须「内容由AI生成」</label>
+      <label class="interval">自动间隔
+        <select id="intervalMs">
+          <option value="4000" selected>4 秒</option>
+          <option value="6000">6 秒</option>
+          <option value="8000">8 秒</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="autoSwitchChannel" /> 自动换栏目</label>
+      <label><input type="checkbox" id="autoSwitchSearch" /> 自动换搜索词</label>
+    </section>
+
+    <section class="export">
+      <button data-act="copy">复制 sec_uid</button>
+      <button data-act="txt">导出 TXT</button>
+      <button data-act="csv">导出 CSV</button>
+      <button data-act="json">导出 JSON</button>
+      <button class="danger" data-act="clear">清空</button>
+    </section>
+
+    <div id="list" class="list"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

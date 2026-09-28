@@ -1,0 +1,9 @@
+# Python 缓存（防止再次生成阻塞 Chrome 扩展加载）
+__pycache__/
+*.pyc
+
+# 二进制上传工具（编译产物，不进版本库）
+douyin_sec_id_upload_tool.exe
+
+# 业务数据表（敏感，不纳入版本管理）
+上传记录表.xlsx

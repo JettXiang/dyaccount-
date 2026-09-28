@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>抖音 AI 作者采集监控后台 · 1.1.4</title>
+<style>
+  :root {
+    --bg: #0f1420; --panel: #171e2e; --panel2: #1e2740; --line: #2a3552;
+    --txt: #e8edf7; --muted: #8b96b3; --accent: #4c8dff; --ok: #2fd07a;
+    --warn: #ffb454; --bad: #ff5c7a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--txt);
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 14px; line-height: 1.6;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  h1 { font-size: 22px; margin: 0; }
+  h1 .ver { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 12.5px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .step { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; align-items: center; justify-content: center; }
+  .drop {
+    border: 2px dashed var(--line); border-radius: 10px; padding: 26px; text-align: center;
+    color: var(--muted); cursor: pointer; transition: .15s;
+  }
+  .drop.over, .drop:hover { border-color: var(--accent); color: var(--txt); background: var(--panel2); }
+  .drop b { color: var(--accent); }
+  textarea, input[type=text], input[type=number] {
+    width: 100%; background: var(--bg); color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 10px; font-size: 13px; font-family: inherit; resize: vertical;
+  }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent); }
+  .row { display: flex; gap: 12px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+  .row label { color: var(--muted); min-width: 96px; }
+  .row .val { font-weight: 600; color: var(--accent); }
+  .muted { color: var(--muted); }
+  .tag { font-size: 12px; padding: 2px 8px; border-radius: 20px; }
+  .tag.ok { background: rgba(47,208,122,.15); color: var(--ok); }
+  .tag.no { background: rgba(255,92,122,.15); color: var(--bad); }
+  button {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: 13.5px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--txt); }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .btnbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--panel); }
+  .tblwrap { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .report-box {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; white-space: pre-wrap; font-family: "Consolas", "Microsoft YaHei", monospace; font-size: 13.5px; line-height: 1.9;
+  }
+  .kv { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .kv:last-child { border-bottom: none; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-weight: 600; }
+  .formula { font-size: 11.5px; color: var(--muted); margin-left: 4px; font-weight: 400; }
+  details { margin: 6px 0; }
+  summary { cursor: pointer; color: var(--muted); }
+  .hist-item { padding: 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; font-size: 12.5px; }
+  .hist-item .t { color: var(--muted); margin-bottom: 4px; }
+  .hist-item .rpt { white-space: pre-wrap; line-height: 1.7; }
+  .pill { display:inline-block; margin:2px 4px 2px 0; padding:1px 8px; border-radius:20px; background:var(--panel2); font-size:11.5px; color:var(--muted); cursor:default; }
+  .notice { background: rgba(255,180,84,.1); border:1px solid rgba(255,180,84,.35); color: var(--warn); border-radius:8px; padding: 10px 12px; font-size: 12.5px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>抖音 AI 作者采集监控后台 <span class="ver">1.1.4 · 高置信</span></h1>
+      <div class="sub">CSV 导入 → 规则判定 → 频次累计（高置信） → 生成汇报 · 本地单文件，数据不离开本机</div>
+    </div>
+    <button class="ghost" id="btnResetPool">清空本地累计池</button>
+  </header>
+
+  <div class="grid">
+    <!-- 左列 -->
+    <div>
+      <div class="card">
+        <h2><span class="step">1</span> 导入 CSV 文件</h2>
+        <div class="drop" id="drop">把 <b>CSV</b> 拖到这里，或点击选择文件<br/><span class="muted" style="font-size:12px">字段：昵称, sec_uid, 合集名, 搜索词, 首次/最近发现时间, 视频数</span></div>
+        <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none" />
+        <div class="row" style="margin-top:10px">
+          <span class="muted">已导入：</span>
+          <span id="csvInfo">尚未导入</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2><span class="step">2</span> 粘贴 exe 处理结果</h2>
+        <textarea id="exeText" rows="6" placeholder="把「抖音 sec_id 上传工具」的日志/弹窗文字粘到这里，例如：&#10;文件有效数量: 4167&#10;本次新增数量: 226&#10;Redis 集合总数: 80579"></textarea>
+        <div class="row">
+          <label>文件有效数</label><input type="number" id="exeFileValid" style="width:110px" />
+          <label>本次新增</label><input type="number" id="exeNew" style="width:110px" />
+          <label>集合总数</label><input type="number" id="exeTotal" style="width:110px" />
+        </div>
+        <div class="muted" style="font-size:12px">粘贴后自动解析；没填到的可手动补。</div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2><span class="step">3</span> 有效性判断规则</h2>
+        <details open>
+          <summary>内容类型白名单（命中任一即视为 AI 内容）</summary>
+          <textarea id="whitelist" rows="3">漫剧,短剧,AIGC,动漫,动画,次元,穿越,重生,逆袭,赘婿,战神,系统,王妃,豪门,漫画,番剧,小剧场,剧场,剧集,末世,自制动画</textarea>
+        </details>
+        <details open>
+          <summary>黑名单（命中任一即排除）</summary>
+          <textarea id="blacklist" rows="3">汪汪队,立大功,民间故事,寓言,动物世界,怀旧,童年,军旅,科普,双语,跟读,后室,未解之谜,领养,咕嘎,人生副本,阅读,育儿,儿童,宝宝,儿歌,纪录片,解说,混剪,搬运,影视解说</textarea>
+        </details>
+        <div class="row">
+          <label>视频数阈值 ≥</label>
+          <input type="number" id="videoMin" value="2" style="width:90px" />
+          <span class="muted">该作者被扫到视频条数达到此值才算「重点」</span>
+        </div>
+        <div class="row">
+          <label>高置信出现次数 ≥</label>
+          <input type="number" id="highMin" value="2" style="width:90px" />
+          <span class="muted">历次导入中重复出现达到此值才算「高置信」（配合重点判定一起用）</span>
+        </div>
+        <details open>
+          <summary>AI 复核（DeepSeek 离线）</summary>
+          <div class="muted" style="font-size:12px">规则判断是默认口径；AI 只对「重点关注」名单逐条二次判断，结果仅供你参考，最终以你手动填的「真实有效数」为准。</div>
+          <div class="btnbar" style="margin-top:8px"><button class="ghost" id="btnGenPrompt">① 复制复核 Prompt + 名单</button></div>
+          <textarea id="aiResult" rows="4" placeholder="② 去 DeepSeek 网页粘贴上面复制的 prompt，把返回的 JSON 结果整段粘到这里，再点③"></textarea>
+          <div class="btnbar" style="margin-top:8px"><button class="ghost" id="btnApplyAi">③ 应用结果到表格</button> <span class="muted" id="aiInfo"></span></div>
+        </details>
+        <div class="btnbar" style="margin-top:12px">
+          <button id="btnAnalyze">重新分析</button>
+          <button class="ghost" id="btnExportCsv">导出重点名单 CSV</button>
+          <button class="ghost" id="btnExportHigh">导出高置信名单 CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列 -->
+    <div>
+      <div class="card">
+        <h2><span class="step">4</span> 分析结果</h2>
+        <div class="row">
+          <span class="tag ok" id="tagTarget">重点 0</span>
+          <span class="tag no" id="tagOther">非重点 0</span>
+          <span class="tag ok" id="tagHigh" style="background:rgba(76,141,255,.15);color:var(--accent)">高置信 0</span>
+          <span class="muted" id="tagTotal">共 0 条</span>
+        </div>
+        <div class="btnbar">
+          <button class="ghost" data-filter="all">全部</button>
+          <button class="ghost" data-filter="yes">只看重点</button>
+          <button class="ghost" data-filter="no">只看非重点</button>
+          <button class="ghost" data-filter="high">只看高置信</button>
+        </div>
+        <div class="tblwrap">
+          <table id="resultTable">
+            <thead><tr><th>昵称</th><th>合集名</th><th>视频数</th><th>搜索词</th><th>出现次数</th><th>判定</th><th>AI复核</th></tr></thead>
+            <tbody><tr><td colspan="7" class="muted">尚未导入数据</td></tr></tbody>
+          </table>
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:8px">「出现次数」= 该 sec_uid 在历次导入中出现的次数（每点一次「保存到本地历史」累加一次），次数越高说明作者越稳定复现。</div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2><span class="step">5</span> 汇报生成</h2>
+        <div class="kv"><span class="k">采集总量（redis总量）<span class="formula">= exe 集合总数</span></span><span class="v" id="r1">—</span></div>
+        <div class="kv"><span class="k">本次新增 <span class="formula">= exe 本次新增</span></span><span class="v" id="r2">—</span></div>
+        <div class="kv"><span class="k">转化率 <span class="formula">= 本次新增 ÷ 文件有效数</span></span><span class="v" id="r3">—</span></div>
+        <div class="kv"><span class="k">文件有效数 <span class="formula">= CSV 去重数（应与 exe 一致）</span></span><span class="v" id="r4">—</span></div>
+        <div class="kv"><span class="k">总计（包含前面采集到的）<span class="formula">= 本地累计池</span></span><span class="v" id="r5">—</span></div>
+        <div class="kv"><span class="k">新增作者 <span class="formula">= 本次相对本地池新增</span></span><span class="v" id="r6">—</span></div>
+        <div class="kv"><span class="k">重点关注（符合判断条件的）<span class="formula">= 规则/LLM 判定命中</span></span><span class="v" id="r7">—</span></div>
+        <div class="kv"><span class="k">高置信作者数 <span class="formula">= 重点 且 出现次数 ≥ 阈值</span></span><span class="v" id="r7h">—</span></div>
+        <div class="kv"><span class="k">人工复核后真实有效数 <span class="formula">= 手动输入</span></span><input type="number" id="r8Input" placeholder="填数字" style="width:120px;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 10px" /></div>
+        <div class="kv"><span class="k">实际有效转化率 <span class="formula">= 真实有效数 ÷ 重点关注数</span></span><span class="v" id="r9">—</span></div>
+
+        <div class="report-box" id="reportText" style="margin-top:12px">（导入 CSV 并粘贴 exe 结果后，这里自动生成汇报文案）</div>
+        <div class="btnbar" style="margin-top:10px">
+          <button id="btnCopy">一键复制汇报</button>
+          <button class="ghost" id="btnSave">保存到本地历史</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2><span class="step">6</span> 历史汇报</h2>
+        <div id="history"><div class="muted">暂无记录</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="dyaccount_v1.1.4.js"></script>
+</body>
+</html>

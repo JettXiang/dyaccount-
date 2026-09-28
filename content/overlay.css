@@ -1,0 +1,247 @@
+#dyaccount-panel {
+  position: fixed;
+  top: 88px;
+  right: 16px;
+  z-index: 2147483000;
+  width: 292px;
+  color: #f5f5f7;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  background: rgba(18, 18, 20, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+#dyaccount-panel.is-collapsed {
+  width: auto;
+}
+
+#dyaccount-panel.is-collapsed .dyaccount-body {
+  display: none;
+}
+
+#dyaccount-panel.is-on .dyaccount-dot {
+  background: #fe2c55;
+  box-shadow: 0 0 0 4px rgba(254, 44, 85, 0.25);
+}
+
+#dyaccount-panel.dyaccount-hit {
+  box-shadow: 0 0 0 2px #fe2c55, 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+#dyaccount-panel.dyaccount-error {
+  border-color: #fe2c55;
+  box-shadow: 0 0 0 2px #fe2c55, 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.dyaccount-hint.dyaccount-hint-error {
+  color: #fb7185;
+  font-weight: 600;
+}
+
+.dyaccount-prompt {
+  margin: 8px 0;
+  padding: 10px;
+  background: rgba(254, 44, 85, 0.12);
+  border: 1px solid rgba(254, 44, 85, 0.4);
+  border-radius: 8px;
+}
+
+.dyaccount-prompt-text {
+  color: #fb7185;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.dyaccount-prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dyaccount-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: default;
+}
+
+.dyaccount-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.dyaccount-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280;
+}
+
+.dyaccount-iconbtn {
+  border: 0;
+  background: transparent;
+  color: #c4c4c8;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.dyaccount-body {
+  padding: 12px;
+}
+
+.dyaccount-row,
+.dyaccount-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dyaccount-actions {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.dyaccount-actions .dyaccount-btn {
+  flex: 1 1 calc(50% - 8px);
+}
+
+.dyaccount-btn {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: #2a2a2e;
+  color: #f5f5f7;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.dyaccount-btn:hover {
+  background: #3a3a40;
+}
+
+.dyaccount-btn.primary {
+  background: #fe2c55;
+}
+
+.dyaccount-btn.primary:hover {
+  background: #ff4d6d;
+}
+
+.dyaccount-btn.on {
+  background: #0ea5e9;
+}
+
+.dyaccount-btn.danger {
+  background: #3f1d24;
+  color: #fb7185;
+}
+
+.dyaccount-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.dyaccount-stats div {
+  background: #1c1c20;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.dyaccount-stats b {
+  display: block;
+  font-size: 18px;
+  color: #fff;
+}
+
+.dyaccount-stats span {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.dyaccount-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+  color: #d4d4d8;
+  font-size: 12px;
+}
+
+.dyaccount-hint {
+  margin: 8px 0;
+  color: #a1a1aa;
+  font-size: 12px;
+}
+
+.dyaccount-list {
+  max-height: 220px;
+  overflow: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 6px;
+}
+
+.dyaccount-item {
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dyaccount-item-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dyaccount-item-meta {
+  color: #a1a1aa;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dyaccount-empty {
+  color: #71717a;
+  padding: 12px 2px;
+  font-size: 12px;
+}
+
+.dyaccount-viewbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.dyaccount-btn-sm {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.dyaccount-item-new {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 0 5px;
+  font-size: 10px;
+  line-height: 16px;
+  color: #fff;
+  background: #fe2c55;
+  border-radius: 4px;
+  vertical-align: 1px;
+}
